@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>3dmetaverse</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="shortcut icon" type="image/x-icon" href="https://raw.githubusercontent.com/Santista1/3dworld/master/favicon.ico">
+  <style> body {margin: 0} </style>
+
+</head>
+
+<body>
+
+  <!-- gun.js -->
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <!-- tween.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/16.3.5/Tween.min.js"></script>
+  <!-- three.js -->
+  <script src="https://unpkg.com/three@0.147.0/build/three.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/controls/DragControls.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/controls/FirstPersonControls.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
+  <script src="https://unpkg.com/three@0.147.0/examples/js/geometries/TeapotGeometry.js"></script>
+
+<script>
+  (function(t,o){"use strict";function i(t){return Object.prototype.toString.call(t)}const r={isFunction:function(){const e=i(function(){});return function(t){return i(t)===e}}(),isUndefined(t){return void 0===t}};o.EventDispatcher.prototype.on=function(t,e){if(r.isFunction(e))return this instanceof o.Object3D&&(this.interactive=!0),this.addEventListener(t,e),this},o.EventDispatcher.prototype.off=function(t,e){return this.removeEventListener(t,e),this},o.EventDispatcher.prototype.once=function(e,i){if(r.isFunction(i)){const n=t=>{i(t),this.off(e,n)};return this.on(e,n),this}},o.EventDispatcher.prototype.emit=function(t,...e){if(void 0!==this._listeners&&!r.isUndefined(this._listeners[t])){const i=this._listeners[t]||[],n=i.slice(0);for(let t=0;t<n.length;t++)n[t].apply(this,e);return this}},o.Object3D.prototype.interactive=!1,o.Object3D.prototype.interactiveChildren=!0,o.Object3D.prototype.started=!1,Object.defineProperty(o.Object3D.prototype,"trackedPointers",{get(){return this._trackedPointers||(this._trackedPointers={}),this._trackedPointers}}),o.Object3D.prototype.raycastTest=function(t){var e=[];return this.raycast(t,e),0<e.length&&e[0]};class s{constructor(){this.global=new o.Vector2,this.target=null,this.originalEvent=null,this.identifier=null,this.isPrimary=!1,this.button=0,this.buttons=0,this.width=0,this.height=0,this.tiltX=0,this.tiltY=0,this.pointerType=null,this.pressure=0,this.rotationAngle=0,this.twist=0,this.tangentialPressure=0}get pointerId(){return this.identifier}_copyEvent(t){t.isPrimary&&(this.isPrimary=!0),this.button=t.button,this.buttons=t.buttons,this.width=t.width,this.height=t.height,this.tiltX=t.tiltX,this.tiltY=t.tiltY,this.pointerType=t.pointerType,this.pressure=t.pressure,this.rotationAngle=t.rotationAngle,this.twist=t.twist||0,this.tangentialPressure=t.tangentialPressure||0}_reset(){this.isPrimary=!1}}class a{constructor(){this.stopped=!1,this.target=null,this.currentTarget=null,this.type=null,this.data=null,this.intersects=[]}stopPropagation(){this.stopped=!0}_reset(){this.stopped=!1,this.currentTarget=null,this.target=null,this.intersects=[]}}class h{constructor(t){this._pointerId=t,this._flags=h.FLAGS.NONE}_doSet(t,e){this._flags=e?this._flags|t:this._flags&~t}get pointerId(){return this._pointerId}get flags(){return this._flags}set flags(t){this._flags=t}get none(){return this._flags===this.constructor.FLAGS.NONE}get over(){return 0!=(this._flags&this.constructor.FLAGS.OVER)}set over(t){this._doSet(this.constructor.FLAGS.OVER,t)}get rightDown(){return 0!=(this._flags&this.constructor.FLAGS.RIGHT_DOWN)}set rightDown(t){this._doSet(this.constructor.FLAGS.RIGHT_DOWN,t)}get leftDown(){return 0!=(this._flags&this.constructor.FLAGS.LEFT_DOWN)}set leftDown(t){this._doSet(this.constructor.FLAGS.LEFT_DOWN,t)}}h.FLAGS=Object.freeze({NONE:0,OVER:1,LEFT_DOWN:2,RIGHT_DOWN:4});const c="MOUSE",n={target:null,data:{global:null}};class e extends o.EventDispatcher{constructor(t,e,i,n){super(),n=n||{},this.renderer=t,this.scene=e,this.camera=i,this.autoPreventDefault=n.autoPreventDefault||!1,this.interactionFrequency=n.interactionFrequency||10,this.mouse=new s,this.mouse.identifier=c,this.mouse.global.set(-999999),this.activeInteractionData={},this.activeInteractionData[c]=this.mouse,this.interactionDataPool=[],this.eventData=new a,this.interactionDOMElement=null,this.moveWhenInside=!0,this.eventsAdded=!1,this.mouseOverRenderer=!1,this.supportsTouchEvents="ontouchstart"in window,this.supportsPointerEvents=!!window.PointerEvent,this.onClick=this.onClick.bind(this),this.processClick=this.processClick.bind(this),this.onPointerUp=this.onPointerUp.bind(this),this.processPointerUp=this.processPointerUp.bind(this),this.onPointerCancel=this.onPointerCancel.bind(this),this.processPointerCancel=this.processPointerCancel.bind(this),this.onPointerDown=this.onPointerDown.bind(this),this.processPointerDown=this.processPointerDown.bind(this),this.onPointerMove=this.onPointerMove.bind(this),this.processPointerMove=this.processPointerMove.bind(this),this.onPointerOut=this.onPointerOut.bind(this),this.processPointerOverOut=this.processPointerOverOut.bind(this),this.onPointerOver=this.onPointerOver.bind(this),this.cursorStyles={default:"inherit",pointer:"pointer"},this.currentCursorMode=null,this.cursor=null,this.raycaster=new o.Raycaster,this._deltaTime=0,this.setTargetElement(this.renderer.domElement)}hitTest(t,e){return n.target=null,n.data.global=t,e=e||this.scene,this.processInteractive(n,e,null,!0),n.target}setTargetElement(t){this.removeEvents(),this.interactionDOMElement=t,this.addEvents()}addEvents(){this.interactionDOMElement&&!this.eventsAdded&&(this.emit("addevents"),this.interactionDOMElement.addEventListener("click",this.onClick,!0),window.navigator.msPointerEnabled?(this.interactionDOMElement.style["-ms-content-zooming"]="none",this.interactionDOMElement.style["-ms-touch-action"]="none"):this.supportsPointerEvents&&(this.interactionDOMElement.style["touch-action"]="none"),this.supportsPointerEvents?(window.document.addEventListener("pointermove",this.onPointerMove,!0),this.interactionDOMElement.addEventListener("pointerdown",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("pointerleave",this.onPointerOut,!0),this.interactionDOMElement.addEventListener("pointerover",this.onPointerOver,!0),window.addEventListener("pointercancel",this.onPointerCancel,!0),window.addEventListener("pointerup",this.onPointerUp,!0)):(window.document.addEventListener("mousemove",this.onPointerMove,!0),this.interactionDOMElement.addEventListener("mousedown",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("mouseout",this.onPointerOut,!0),this.interactionDOMElement.addEventListener("mouseover",this.onPointerOver,!0),window.addEventListener("mouseup",this.onPointerUp,!0)),this.supportsTouchEvents&&(this.interactionDOMElement.addEventListener("touchstart",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("touchcancel",this.onPointerCancel,!0),this.interactionDOMElement.addEventListener("touchend",this.onPointerUp,!0),this.interactionDOMElement.addEventListener("touchmove",this.onPointerMove,!0)),this.eventsAdded=!0)}removeEvents(){this.interactionDOMElement&&(this.emit("removeevents"),this.interactionDOMElement.removeEventListener("click",this.onClick,!0),window.navigator.msPointerEnabled?(this.interactionDOMElement.style["-ms-content-zooming"]="",this.interactionDOMElement.style["-ms-touch-action"]=""):this.supportsPointerEvents&&(this.interactionDOMElement.style["touch-action"]=""),this.supportsPointerEvents?(window.document.removeEventListener("pointermove",this.onPointerMove,!0),this.interactionDOMElement.removeEventListener("pointerdown",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("pointerleave",this.onPointerOut,!0),this.interactionDOMElement.removeEventListener("pointerover",this.onPointerOver,!0),window.removeEventListener("pointercancel",this.onPointerCancel,!0),window.removeEventListener("pointerup",this.onPointerUp,!0)):(window.document.removeEventListener("mousemove",this.onPointerMove,!0),this.interactionDOMElement.removeEventListener("mousedown",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("mouseout",this.onPointerOut,!0),this.interactionDOMElement.removeEventListener("mouseover",this.onPointerOver,!0),window.removeEventListener("mouseup",this.onPointerUp,!0)),this.supportsTouchEvents&&(this.interactionDOMElement.removeEventListener("touchstart",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("touchcancel",this.onPointerCancel,!0),this.interactionDOMElement.removeEventListener("touchend",this.onPointerUp,!0),this.interactionDOMElement.removeEventListener("touchmove",this.onPointerMove,!0)),this.interactionDOMElement=null,this.eventsAdded=!1)}update({snippet:t}){if(this._deltaTime+=t,!(this._deltaTime<this.interactionFrequency)&&(this._deltaTime=0,this.interactionDOMElement))if(this.didMove)this.didMove=!1;else{this.cursor=null;for(const i in this.activeInteractionData){var e;!this.activeInteractionData.hasOwnProperty(i)||(e=this.activeInteractionData[i]).originalEvent&&"touch"!==e.pointerType&&(e=this.configureInteractionEventForDOMEvent(this.eventData,e.originalEvent,e),this.processInteractive(e,this.scene,this.processPointerOverOut,!0))}this.setCursorMode(this.cursor)}}setCursorMode(t){if(this.currentCursorMode!==(t=t||"default")){this.currentCursorMode=t;const e=this.cursorStyles[t];if(e)switch(typeof e){case"string":this.interactionDOMElement.style.cursor=e;break;case"function":e(t);break;case"object":Object.assign(this.interactionDOMElement.style,e)}else"string"!=typeof t||Object.prototype.hasOwnProperty.call(this.cursorStyles,t)||(this.interactionDOMElement.style.cursor=t)}}triggerEvent(t,e,i){i.stopped||(i.currentTarget=t,i.type=e,t.emit(e,i),t[e]&&t[e](i))}processInteractive(e,t,i,n,o){if(!t||!t.visible)return!1;let r=!1,s=o=t.interactive||o;if(t.interactiveChildren&&t.children){var a=t.children;for(let t=a.length-1;0<=t;t--){var h=a[t],c=this.processInteractive(e,h,i,n,s);c&&h.parent&&(s=!1,c&&(e.target&&(n=!1),r=!0))}}return o&&(n&&!e.target&&e.intersects[0]&&e.intersects[0].object===t&&(r=!0),t.interactive&&(r&&!e.target&&(e.data.target=e.target=t),i&&i(e,t,!!r))),r}onClick(t){if("click"===t.type){var e=this.normalizeToPointerData(t);this.autoPreventDefault&&e[0].isNormalized&&t.preventDefault();var i=this.getInteractionDataForPointerId(e[0]);const n=this.configureInteractionEventForDOMEvent(this.eventData,e[0],i);n.data.originalEvent=t,this.processInteractive(n,this.scene,this.processClick,!0),this.emit("click",n)}}processClick(t,e,i){i&&this.triggerEvent(e,"click",t)}onPointerDown(e){if(!this.supportsTouchEvents||"touch"!==e.pointerType){var i=this.normalizeToPointerData(e);this.autoPreventDefault&&i[0].isNormalized&&e.preventDefault();var n=i.length;for(let t=0;t<n;t++){var o=i[t],r=this.getInteractionDataForPointerId(o);const s=this.configureInteractionEventForDOMEvent(this.eventData,o,r);s.data.originalEvent=e,this.processInteractive(s,this.scene,this.processPointerDown,!0),this.emit("pointerdown",s),"touch"===o.pointerType?this.emit("touchstart",s):"mouse"!==o.pointerType&&"pen"!==o.pointerType||(o=2===o.button,this.emit(o?"rightdown":"mousedown",this.eventData))}}}processPointerDown(t,e,i){var n=t.data,o=t.data.identifier;i&&(e.trackedPointers[o]||(e.trackedPointers[o]=new h(o)),this.triggerEvent(e,"pointerdown",t),"touch"===n.pointerType?(e.started=!0,this.triggerEvent(e,"touchstart",t)):"mouse"!==n.pointerType&&"pen"!==n.pointerType||((n=2===n.button)?e.trackedPointers[o].rightDown=!0:e.trackedPointers[o].leftDown=!0,this.triggerEvent(e,n?"rightdown":"mousedown",t)))}onPointerComplete(e,i,n){var o=this.normalizeToPointerData(e),r=o.length,s=e.target!==this.interactionDOMElement?"outside":"";for(let t=0;t<r;t++){var a,h=o[t],c=this.getInteractionDataForPointerId(h);const l=this.configureInteractionEventForDOMEvent(this.eventData,h,c);l.data.originalEvent=e,this.processInteractive(l,this.scene,n,i||!s),this.emit(i?"pointercancel":`pointerup${s}`,l),"mouse"===h.pointerType||"pen"===h.pointerType?(a=2===h.button,this.emit(a?`rightup${s}`:`mouseup${s}`,l)):"touch"===h.pointerType&&(this.emit(i?"touchcancel":`touchend${s}`,l),this.releaseInteractionDataForPointerId(h.pointerId,c))}}onPointerCancel(t){this.supportsTouchEvents&&"touch"===t.pointerType||this.onPointerComplete(t,!0,this.processPointerCancel)}processPointerCancel(t,e){var i=t.data,n=t.data.identifier;void 0!==e.trackedPointers[n]&&(delete e.trackedPointers[n],this.triggerEvent(e,"pointercancel",t),"touch"===i.pointerType&&this.triggerEvent(e,"touchcancel",t))}onPointerUp(t){this.supportsTouchEvents&&"touch"===t.pointerType||this.onPointerComplete(t,!1,this.processPointerUp)}processPointerUp(t,e,i){var n=t.data,o=t.data.identifier;const r=e.trackedPointers[o];var s,a="touch"===n.pointerType;"mouse"!==n.pointerType&&"pen"!==n.pointerType||(s=2===n.button,n=h.FLAGS,n=s?n.RIGHT_DOWN:n.LEFT_DOWN,n=void 0!==r&&r.flags&n,i?(this.triggerEvent(e,s?"rightup":"mouseup",t),n&&this.triggerEvent(e,s?"rightclick":"leftclick",t)):n&&this.triggerEvent(e,s?"rightupoutside":"mouseupoutside",t),r&&(s?r.rightDown=!1:r.leftDown=!1)),a&&e.started&&(e.started=!1,this.triggerEvent(e,"touchend",t)),i?(this.triggerEvent(e,"pointerup",t),r&&(this.triggerEvent(e,"pointertap",t),a&&(this.triggerEvent(e,"tap",t),r.over=!1))):r&&(this.triggerEvent(e,"pointerupoutside",t),a&&this.triggerEvent(e,"touchendoutside",t)),r&&r.none&&delete e.trackedPointers[o]}onPointerMove(e){if(!this.supportsTouchEvents||"touch"!==e.pointerType){var i=this.normalizeToPointerData(e);"mouse"===i[0].pointerType&&(this.didMove=!0,this.cursor=null);var n=i.length;for(let t=0;t<n;t++){var o=i[t],r=this.getInteractionDataForPointerId(o);const s=this.configureInteractionEventForDOMEvent(this.eventData,o,r);s.data.originalEvent=e;r="touch"!==o.pointerType||this.moveWhenInside;this.processInteractive(s,this.scene,this.processPointerMove,r),this.emit("pointermove",s),"touch"===o.pointerType&&this.emit("touchmove",s),"mouse"!==o.pointerType&&"pen"!==o.pointerType||this.emit("mousemove",s)}"mouse"===i[0].pointerType&&this.setCursorMode(this.cursor)}}processPointerMove(t,e,i){var n=t.data,o="touch"===n.pointerType,n="mouse"===n.pointerType||"pen"===n.pointerType;n&&this.processPointerOverOut(t,e,i),o&&e.started&&this.triggerEvent(e,"touchmove",t),this.moveWhenInside&&!i||(this.triggerEvent(e,"pointermove",t),n&&this.triggerEvent(e,"mousemove",t))}onPointerOut(t){if(!this.supportsTouchEvents||"touch"!==t.pointerType){var e=this.normalizeToPointerData(t)[0];"mouse"===e.pointerType&&(this.mouseOverRenderer=!1,this.setCursorMode(null));t=this.getInteractionDataForPointerId(e);const i=this.configureInteractionEventForDOMEvent(this.eventData,e,t);i.data.originalEvent=e,this.processInteractive(i,this.scene,this.processPointerOverOut,!1),this.emit("pointerout",i),"mouse"===e.pointerType||"pen"===e.pointerType?this.emit("mouseout",i):this.releaseInteractionDataForPointerId(t.identifier)}}processPointerOverOut(t,e,i){var n=t.data,o=t.data.identifier,n="mouse"===n.pointerType||"pen"===n.pointerType;let r=e.trackedPointers[o];i&&!r&&(r=e.trackedPointers[o]=new h(o)),void 0!==r&&(i&&this.mouseOverRenderer?(r.over||(r.over=!0,this.triggerEvent(e,"pointerover",t),n&&this.triggerEvent(e,"mouseover",t)),n&&null===this.cursor&&(this.cursor=e.cursor)):r.over&&(r.over=!1,this.triggerEvent(e,"pointerout",this.eventData),n&&this.triggerEvent(e,"mouseout",t),r.none&&delete e.trackedPointers[o]))}onPointerOver(t){var e=this.normalizeToPointerData(t)[0],t=this.getInteractionDataForPointerId(e);const i=this.configureInteractionEventForDOMEvent(this.eventData,e,t);"mouse"===(i.data.originalEvent=e).pointerType&&(this.mouseOverRenderer=!0),this.emit("pointerover",i),"mouse"!==e.pointerType&&"pen"!==e.pointerType||this.emit("mouseover",i)}getInteractionDataForPointerId(t){var e=t.pointerId;let i;return e===c||"mouse"===t.pointerType?i=this.mouse:this.activeInteractionData[e]?i=this.activeInteractionData[e]:(i=this.interactionDataPool.pop()||new s,i.identifier=e,this.activeInteractionData[e]=i),i._copyEvent(t),i}releaseInteractionDataForPointerId(t){const e=this.activeInteractionData[t];e&&(delete this.activeInteractionData[t],e._reset(),this.interactionDataPool.push(e))}mapPositionToPoint(t,e,i){let n;n=this.interactionDOMElement.parentElement?this.interactionDOMElement.getBoundingClientRect():{x:0,y:0,left:0,top:0,width:0,height:0},t.x=(e-n.left)/n.width*2-1,t.y=2*-((i-n.top)/n.height)+1}configureInteractionEventForDOMEvent(t,e,i){return t.data=i,this.mapPositionToPoint(i.global,e.clientX,e.clientY),this.raycaster.setFromCamera(i.global,this.camera),"touch"===e.pointerType&&(e.globalX=i.global.x,e.globalY=i.global.y),i.originalEvent=e,t._reset(),t.intersects=this.raycaster.intersectObjects(this.scene.children,!0),t}normalizeToPointerData(i){const n=[];if(this.supportsTouchEvents&&i instanceof TouchEvent)for(let t=0,e=i.changedTouches.length;t<e;t++){const o=i.changedTouches[t];void 0===o.button&&(o.button=i.touches.length?1:0),void 0===o.buttons&&(o.buttons=i.touches.length?1:0),void 0===o.isPrimary&&(o.isPrimary=1===i.touches.length&&"touchstart"===i.type),void 0===o.width&&(o.width=o.radiusX||1),void 0===o.height&&(o.height=o.radiusY||1),void 0===o.tiltX&&(o.tiltX=0),void 0===o.tiltY&&(o.tiltY=0),void 0===o.pointerType&&(o.pointerType="touch"),void 0===o.pointerId&&(o.pointerId=o.identifier||0),void 0===o.pressure&&(o.pressure=o.force||.5),o.twist=0,void(o.tangentialPressure=0)===o.layerX&&(o.layerX=o.offsetX=o.clientX),void 0===o.layerY&&(o.layerY=o.offsetY=o.clientY),o.isNormalized=!0,n.push(o)}else!(i instanceof MouseEvent)||this.supportsPointerEvents&&i instanceof window.PointerEvent||(void 0===i.isPrimary&&(i.isPrimary=!0),void 0===i.width&&(i.width=1),void 0===i.height&&(i.height=1),void 0===i.tiltX&&(i.tiltX=0),void 0===i.tiltY&&(i.tiltY=0),void 0===i.pointerType&&(i.pointerType="mouse"),void 0===i.pointerId&&(i.pointerId=c),void 0===i.pressure&&(i.pressure=.5),i.twist=0,i.tangentialPressure=0,i.isNormalized=!0),n.push(i);return n}destroy(){this.removeEvents(),this.removeAllListeners(),this.renderer=null,this.mouse=null,this.eventData=null,this.interactionDOMElement=null,this.onPointerDown=null,this.processPointerDown=null,this.onPointerUp=null,this.processPointerUp=null,this.onPointerCancel=null,this.processPointerCancel=null,this.onPointerMove=null,this.processPointerMove=null,this.onPointerOut=null,this.processPointerOverOut=null,this.onPointerOver=null,this._tempPoint=null}}const l="MOUSE",u={target:null,data:{global:null}};class p extends o.EventDispatcher{constructor(t,e){super(),e=e||{},this.renderer=t,this.layer=null,this.autoPreventDefault=e.autoPreventDefault||!1,this.interactionFrequency=e.interactionFrequency||10,this.mouse=new s,this.mouse.identifier=l,this.mouse.global.set(-999999),this.activeInteractionData={},this.activeInteractionData[l]=this.mouse,this.interactionDataPool=[],this.eventData=new a,this.interactionDOMElement=null,this.moveWhenInside=!0,this.eventsAdded=!1,this.mouseOverRenderer=!1,this.supportsTouchEvents="ontouchstart"in window,this.supportsPointerEvents=!!window.PointerEvent,this.onClick=this.onClick.bind(this),this.processClick=this.processClick.bind(this),this.onPointerUp=this.onPointerUp.bind(this),this.processPointerUp=this.processPointerUp.bind(this),this.onPointerCancel=this.onPointerCancel.bind(this),this.processPointerCancel=this.processPointerCancel.bind(this),this.onPointerDown=this.onPointerDown.bind(this),this.processPointerDown=this.processPointerDown.bind(this),this.onPointerMove=this.onPointerMove.bind(this),this.processPointerMove=this.processPointerMove.bind(this),this.onPointerOut=this.onPointerOut.bind(this),this.processPointerOverOut=this.processPointerOverOut.bind(this),this.onPointerOver=this.onPointerOver.bind(this),this.cursorStyles={default:"inherit",pointer:"pointer"},this.currentCursorMode=null,this.cursor=null,this.raycaster=new o.Raycaster,this._deltaTime=0,this.setTargetElement(this.renderer.domElement)}isAble(){return this.layer&&this.layer.interactive}setLayer(t){this.layer=t}hitTest(t,e){return this.isAble()?(u.target=null,u.data.global=t,e=e||this.layer.scene,this.processInteractive(u,e,null,!0),u.target):null}setTargetElement(t){this.removeEvents(),this.interactionDOMElement=t,this.addEvents()}addEvents(){this.interactionDOMElement&&!this.eventsAdded&&(this.emit("addevents"),this.interactionDOMElement.addEventListener("click",this.onClick,!0),window.navigator.msPointerEnabled?(this.interactionDOMElement.style["-ms-content-zooming"]="none",this.interactionDOMElement.style["-ms-touch-action"]="none"):this.supportsPointerEvents&&(this.interactionDOMElement.style["touch-action"]="none"),this.supportsPointerEvents?(window.document.addEventListener("pointermove",this.onPointerMove,!0),this.interactionDOMElement.addEventListener("pointerdown",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("pointerleave",this.onPointerOut,!0),this.interactionDOMElement.addEventListener("pointerover",this.onPointerOver,!0),window.addEventListener("pointercancel",this.onPointerCancel,!0),window.addEventListener("pointerup",this.onPointerUp,!0)):(window.document.addEventListener("mousemove",this.onPointerMove,!0),this.interactionDOMElement.addEventListener("mousedown",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("mouseout",this.onPointerOut,!0),this.interactionDOMElement.addEventListener("mouseover",this.onPointerOver,!0),window.addEventListener("mouseup",this.onPointerUp,!0)),this.supportsTouchEvents&&(this.interactionDOMElement.addEventListener("touchstart",this.onPointerDown,!0),this.interactionDOMElement.addEventListener("touchcancel",this.onPointerCancel,!0),this.interactionDOMElement.addEventListener("touchend",this.onPointerUp,!0),this.interactionDOMElement.addEventListener("touchmove",this.onPointerMove,!0)),this.eventsAdded=!0)}removeEvents(){this.interactionDOMElement&&(this.emit("removeevents"),this.interactionDOMElement.removeEventListener("click",this.onClick,!0),window.navigator.msPointerEnabled?(this.interactionDOMElement.style["-ms-content-zooming"]="",this.interactionDOMElement.style["-ms-touch-action"]=""):this.supportsPointerEvents&&(this.interactionDOMElement.style["touch-action"]=""),this.supportsPointerEvents?(window.document.removeEventListener("pointermove",this.onPointerMove,!0),this.interactionDOMElement.removeEventListener("pointerdown",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("pointerleave",this.onPointerOut,!0),this.interactionDOMElement.removeEventListener("pointerover",this.onPointerOver,!0),window.removeEventListener("pointercancel",this.onPointerCancel,!0),window.removeEventListener("pointerup",this.onPointerUp,!0)):(window.document.removeEventListener("mousemove",this.onPointerMove,!0),this.interactionDOMElement.removeEventListener("mousedown",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("mouseout",this.onPointerOut,!0),this.interactionDOMElement.removeEventListener("mouseover",this.onPointerOver,!0),window.removeEventListener("mouseup",this.onPointerUp,!0)),this.supportsTouchEvents&&(this.interactionDOMElement.removeEventListener("touchstart",this.onPointerDown,!0),this.interactionDOMElement.removeEventListener("touchcancel",this.onPointerCancel,!0),this.interactionDOMElement.removeEventListener("touchend",this.onPointerUp,!0),this.interactionDOMElement.removeEventListener("touchmove",this.onPointerMove,!0)),this.interactionDOMElement=null,this.eventsAdded=!1)}update({snippet:t}){if(this.isAble()&&(this._deltaTime+=t,!(this._deltaTime<this.interactionFrequency)&&(this._deltaTime=0,this.interactionDOMElement)))if(this.didMove)this.didMove=!1;else{this.cursor=null;for(const i in this.activeInteractionData){var e;!this.activeInteractionData.hasOwnProperty(i)||(e=this.activeInteractionData[i]).originalEvent&&"touch"!==e.pointerType&&(e=this.configureInteractionEventForDOMEvent(this.eventData,e.originalEvent,e),this.processInteractive(e,this.layer.scene,this.processPointerOverOut,!0))}this.setCursorMode(this.cursor)}}setCursorMode(t){if(this.currentCursorMode!==(t=t||"default")){this.currentCursorMode=t;const e=this.cursorStyles[t];if(e)switch(typeof e){case"string":this.interactionDOMElement.style.cursor=e;break;case"function":e(t);break;case"object":Object.assign(this.interactionDOMElement.style,e)}else"string"!=typeof t||Object.prototype.hasOwnProperty.call(this.cursorStyles,t)||(this.interactionDOMElement.style.cursor=t)}}triggerEvent(t,e,i){i.stopped||(i.currentTarget=t,i.type=e,t.emit(e,i),t[e]&&t[e](i))}processInteractive(e,t,i,n,o){if(!t||!t.visible)return!1;let r=!1,s=o=t.interactive||o;if(t.interactiveChildren&&t.children){var a=t.children;for(let t=a.length-1;0<=t;t--){var h=a[t],c=this.processInteractive(e,h,i,n,s);c&&h.parent&&(s=!1,c&&(e.target&&(n=!1),r=!0))}}return o&&(n&&!e.target&&e.intersects[0]&&e.intersects[0].object===t&&(r=!0),t.interactive&&(r&&!e.target&&(e.data.target=e.target=t),i&&i(e,t,!!r))),r}onClick(t){if(this.isAble()&&"click"===t.type){var e=this.normalizeToPointerData(t);this.autoPreventDefault&&e[0].isNormalized&&t.preventDefault();var i=this.getInteractionDataForPointerId(e[0]);const n=this.configureInteractionEventForDOMEvent(this.eventData,e[0],i);n.data.originalEvent=t,this.processInteractive(n,this.layer.scene,this.processClick,!0),this.emit("click",n)}}processClick(t,e,i){i&&this.triggerEvent(e,"click",t)}onPointerDown(e){if(this.isAble()&&(!this.supportsTouchEvents||"touch"!==e.pointerType)){var i=this.normalizeToPointerData(e);this.autoPreventDefault&&i[0].isNormalized&&e.preventDefault();var n=i.length;for(let t=0;t<n;t++){var o=i[t],r=this.getInteractionDataForPointerId(o);const s=this.configureInteractionEventForDOMEvent(this.eventData,o,r);s.data.originalEvent=e,this.processInteractive(s,this.layer.scene,this.processPointerDown,!0),this.emit("pointerdown",s),"touch"===o.pointerType?this.emit("touchstart",s):"mouse"!==o.pointerType&&"pen"!==o.pointerType||(o=2===o.button,this.emit(o?"rightdown":"mousedown",this.eventData))}}}processPointerDown(t,e,i){var n=t.data,o=t.data.identifier;i&&(e.trackedPointers[o]||(e.trackedPointers[o]=new h(o)),this.triggerEvent(e,"pointerdown",t),"touch"===n.pointerType?(e.started=!0,this.triggerEvent(e,"touchstart",t)):"mouse"!==n.pointerType&&"pen"!==n.pointerType||((n=2===n.button)?e.trackedPointers[o].rightDown=!0:e.trackedPointers[o].leftDown=!0,this.triggerEvent(e,n?"rightdown":"mousedown",t)))}onPointerComplete(e,i,n){var o=this.normalizeToPointerData(e),r=o.length,s=e.target!==this.interactionDOMElement?"outside":"";for(let t=0;t<r;t++){var a,h=o[t],c=this.getInteractionDataForPointerId(h);const l=this.configureInteractionEventForDOMEvent(this.eventData,h,c);l.data.originalEvent=e,this.processInteractive(l,this.layer.scene,n,i||!s),this.emit(i?"pointercancel":`pointerup${s}`,l),"mouse"===h.pointerType||"pen"===h.pointerType?(a=2===h.button,this.emit(a?`rightup${s}`:`mouseup${s}`,l)):"touch"===h.pointerType&&(this.emit(i?"touchcancel":`touchend${s}`,l),this.releaseInteractionDataForPointerId(h.pointerId,c))}}onPointerCancel(t){this.isAble()&&(this.supportsTouchEvents&&"touch"===t.pointerType||this.onPointerComplete(t,!0,this.processPointerCancel))}processPointerCancel(t,e){var i=t.data,n=t.data.identifier;void 0!==e.trackedPointers[n]&&(delete e.trackedPointers[n],this.triggerEvent(e,"pointercancel",t),"touch"===i.pointerType&&this.triggerEvent(e,"touchcancel",t))}onPointerUp(t){this.isAble()&&(this.supportsTouchEvents&&"touch"===t.pointerType||this.onPointerComplete(t,!1,this.processPointerUp))}processPointerUp(t,e,i){var n=t.data,o=t.data.identifier;const r=e.trackedPointers[o];var s,a="touch"===n.pointerType;"mouse"!==n.pointerType&&"pen"!==n.pointerType||(s=2===n.button,n=h.FLAGS,n=s?n.RIGHT_DOWN:n.LEFT_DOWN,n=void 0!==r&&r.flags&n,i?(this.triggerEvent(e,s?"rightup":"mouseup",t),n&&this.triggerEvent(e,s?"rightclick":"leftclick",t)):n&&this.triggerEvent(e,s?"rightupoutside":"mouseupoutside",t),r&&(s?r.rightDown=!1:r.leftDown=!1)),a&&e.started&&(e.started=!1,this.triggerEvent(e,"touchend",t)),i?(this.triggerEvent(e,"pointerup",t),r&&(this.triggerEvent(e,"pointertap",t),a&&(this.triggerEvent(e,"tap",t),r.over=!1))):r&&(this.triggerEvent(e,"pointerupoutside",t),a&&this.triggerEvent(e,"touchendoutside",t)),r&&r.none&&delete e.trackedPointers[o]}onPointerMove(e){if(this.isAble()&&(!this.supportsTouchEvents||"touch"!==e.pointerType)){var i=this.normalizeToPointerData(e);"mouse"===i[0].pointerType&&(this.didMove=!0,this.cursor=null);var n=i.length;for(let t=0;t<n;t++){var o=i[t],r=this.getInteractionDataForPointerId(o);const s=this.configureInteractionEventForDOMEvent(this.eventData,o,r);s.data.originalEvent=e;r="touch"!==o.pointerType||this.moveWhenInside;this.processInteractive(s,this.layer.scene,this.processPointerMove,r),this.emit("pointermove",s),"touch"===o.pointerType&&this.emit("touchmove",s),"mouse"!==o.pointerType&&"pen"!==o.pointerType||this.emit("mousemove",s)}"mouse"===i[0].pointerType&&this.setCursorMode(this.cursor)}}processPointerMove(t,e,i){var n=t.data,o="touch"===n.pointerType,n="mouse"===n.pointerType||"pen"===n.pointerType;n&&this.processPointerOverOut(t,e,i),o&&e.started&&this.triggerEvent(e,"touchmove",t),this.moveWhenInside&&!i||(this.triggerEvent(e,"pointermove",t),n&&this.triggerEvent(e,"mousemove",t))}onPointerOut(t){if(this.isAble()&&(!this.supportsTouchEvents||"touch"!==t.pointerType)){var e=this.normalizeToPointerData(t)[0];"mouse"===e.pointerType&&(this.mouseOverRenderer=!1,this.setCursorMode(null));t=this.getInteractionDataForPointerId(e);const i=this.configureInteractionEventForDOMEvent(this.eventData,e,t);i.data.originalEvent=e,this.processInteractive(i,this.layer.scene,this.processPointerOverOut,!1),this.emit("pointerout",i),"mouse"===e.pointerType||"pen"===e.pointerType?this.emit("mouseout",i):this.releaseInteractionDataForPointerId(t.identifier)}}processPointerOverOut(t,e,i){var n=t.data,o=t.data.identifier,n="mouse"===n.pointerType||"pen"===n.pointerType;let r=e.trackedPointers[o];i&&!r&&(r=e.trackedPointers[o]=new h(o)),void 0!==r&&(i&&this.mouseOverRenderer?(r.over||(r.over=!0,this.triggerEvent(e,"pointerover",t),n&&this.triggerEvent(e,"mouseover",t)),n&&null===this.cursor&&(this.cursor=e.cursor)):r.over&&(r.over=!1,this.triggerEvent(e,"pointerout",this.eventData),n&&this.triggerEvent(e,"mouseout",t),r.none&&delete e.trackedPointers[o]))}onPointerOver(t){if(this.isAble()){var e=this.normalizeToPointerData(t)[0],t=this.getInteractionDataForPointerId(e);const i=this.configureInteractionEventForDOMEvent(this.eventData,e,t);"mouse"===(i.data.originalEvent=e).pointerType&&(this.mouseOverRenderer=!0),this.emit("pointerover",i),"mouse"!==e.pointerType&&"pen"!==e.pointerType||this.emit("mouseover",i)}}getInteractionDataForPointerId(t){var e=t.pointerId;let i;return e===l||"mouse"===t.pointerType?i=this.mouse:this.activeInteractionData[e]?i=this.activeInteractionData[e]:(i=this.interactionDataPool.pop()||new s,i.identifier=e,this.activeInteractionData[e]=i),i._copyEvent(t),i}releaseInteractionDataForPointerId(t){const e=this.activeInteractionData[t];e&&(delete this.activeInteractionData[t],e._reset(),this.interactionDataPool.push(e))}mapPositionToPoint(t,e,i){let n;n=this.interactionDOMElement.parentElement?this.interactionDOMElement.getBoundingClientRect():{x:0,y:0,left:0,top:0,width:0,height:0},t.x=(e-n.left)/n.width*2-1,t.y=2*-((i-n.top)/n.height)+1}configureInteractionEventForDOMEvent(t,e,i){return t.data=i,this.mapPositionToPoint(i.global,e.clientX,e.clientY),this.layer&&this.layer.interactive&&this.raycaster.setFromCamera(i.global,this.layer.camera),"touch"===e.pointerType&&(e.globalX=i.global.x,e.globalY=i.global.y),i.originalEvent=e,t._reset(),t.intersects=this.raycaster.intersectObjects(this.scene.children,!0),t}normalizeToPointerData(i){const n=[];if(this.supportsTouchEvents&&i instanceof TouchEvent)for(let t=0,e=i.changedTouches.length;t<e;t++){const o=i.changedTouches[t];void 0===o.button&&(o.button=i.touches.length?1:0),void 0===o.buttons&&(o.buttons=i.touches.length?1:0),void 0===o.isPrimary&&(o.isPrimary=1===i.touches.length&&"touchstart"===i.type),void 0===o.width&&(o.width=o.radiusX||1),void 0===o.height&&(o.height=o.radiusY||1),void 0===o.tiltX&&(o.tiltX=0),void 0===o.tiltY&&(o.tiltY=0),void 0===o.pointerType&&(o.pointerType="touch"),void 0===o.pointerId&&(o.pointerId=o.identifier||0),void 0===o.pressure&&(o.pressure=o.force||.5),o.twist=0,void(o.tangentialPressure=0)===o.layerX&&(o.layerX=o.offsetX=o.clientX),void 0===o.layerY&&(o.layerY=o.offsetY=o.clientY),o.isNormalized=!0,n.push(o)}else!(i instanceof MouseEvent)||this.supportsPointerEvents&&i instanceof window.PointerEvent||(void 0===i.isPrimary&&(i.isPrimary=!0),void 0===i.width&&(i.width=1),void 0===i.height&&(i.height=1),void 0===i.tiltX&&(i.tiltX=0),void 0===i.tiltY&&(i.tiltY=0),void 0===i.pointerType&&(i.pointerType="mouse"),void 0===i.pointerId&&(i.pointerId=l),void 0===i.pressure&&(i.pressure=.5),i.twist=0,i.tangentialPressure=0,i.isNormalized=!0),n.push(i);return n}destroy(){this.removeEvents(),this.removeAllListeners(),this.renderer=null,this.mouse=null,this.eventData=null,this.interactionDOMElement=null,this.onPointerDown=null,this.processPointerDown=null,this.onPointerUp=null,this.processPointerUp=null,this.onPointerCancel=null,this.processPointerCancel=null,this.onPointerMove=null,this.processPointerMove=null,this.onPointerOut=null,this.processPointerOverOut=null,this.onPointerOver=null,this._tempPoint=null}}!function(){let o=0;var e=["ms","moz","webkit","o"];for(let t=0;t<e.length&&!window.requestAnimationFrame;++t)window.requestAnimationFrame=window[e[t]+"RequestAnimationFrame"],window.cancelAnimationFrame=window[e[t]+"CancelAnimationFrame"]||window[e[t]+"CancelRequestAnimationFrame"];window.requestAnimationFrame||(window.requestAnimationFrame=function(t){let e=(new Date).getTime(),i=Math.max(0,16-(e-o));var n=window.setTimeout(function(){t(e+i)},i);return o=e+i,n}),window.cancelAnimationFrame||(window.cancelAnimationFrame=function(t){clearTimeout(t)}),window.RAF=window.requestAnimationFrame,window.CAF=window.cancelAnimationFrame}();class v extends o.EventDispatcher{constructor(){super(),this.timer=null,this.started=!1,this.pt=0,this.snippet=0,this.start()}start(){if(!this.started){const t=()=>{this.timeline(),this.emit("tick",{snippet:this.snippet}),this.timer=RAF(t)};t()}}stop(){CAF(this.timer),this.started=!1}timeline(){this.snippet=Date.now()-this.pt,(0===this.pt||200<this.snippet)&&(this.pt=Date.now(),this.snippet=Date.now()-this.pt),this.pt+=this.snippet}}return THREE.InteractionManager=e,THREE.InteractionLayer=p,THREE.Interaction=class extends e{constructor(t,e,i,n){super(t,e,i,n=Object.assign({autoAttach:!1},n)),this.ticker=new v,this.update=this.update.bind(this),this.on("addevents",()=>{this.ticker.on("tick",this.update)}),this.on("removeevents",()=>{this.ticker.off("tick",this.update)}),this.setTargetElement(this.renderer.domElement)}},t})({},THREE);
+</script>
+<script>
+  function canvas(p = {}) {
+
+    this[p.name] = document.createElement("canvas");
+    this[p.name].width = p.width || window.innerWidth;
+    this[p.name].height = p.height || window.innerHeight;
+    this[p.name].style.position = "absolute";
+    document.body.appendChild(this[p.name]);
+
+  };
+
+  function scene({name = 'world', background = null}) {
+
+    this[name] = new THREE.Scene();
+    this[name].background = background;
+
+  };
+
+  function camera(p = {}) {
+
+    switch (p.type) {
+
+      case undefined:
+      case 'perspective':
+        this[p.name] = new THREE.PerspectiveCamera(
+          p.fov || 75,
+          p.aspect || window.innerWidth / window.innerHeight,
+          p.near || 0.1,
+          p.far || 1000
+        );
+      break;
+
+      case 'orthographic':
+        this[p.name] = new THREE.OrthographicCamera(
+          ((p.frustumSize || 100) * (p.aspect || window.innerWidth / window.innerHeight)) / -2,
+          ((p.frustumSize || 100) * (p.aspect || window.innerWidth / window.innerHeight)) / 2,
+          (p.frustumSize || 100) / 2,
+          (p.frustumSize || 100) / -2,
+          p.near || 0.1,
+          p.far || 1000
+        );
+      break;
+
+    };
+
+    this[p.name].position.set(p.x || 0, p.y || 0, p.z || 5);
+
+    this[p.name].rotation.set(
+      p.rx * (Math.PI / 180) || 0,
+      p.ry * (Math.PI / 180) || 0,
+      p.rz * (Math.PI / 180) || 0
+    );
+
+  };
+
+  function renderer(p = {}) {
+
+    if (!p.antialias) { p.antialias = true };
+    if (!p.alpha) {p.alpha = true };
+    if (!p.canvas) {canvas({name: p.name}); p.canvas = this[p.name];};
+    this[p.name] = new THREE.WebGLRenderer(p);
+
+  };
+
+  function init(p = {}) {
+
+    scene({name: p.name, background: p.background});
+    camera({name: p.name + '_camera', type: p.type, x: p.x, y: p.y, z: p.z, rx: p.rx, ry: p.ry, z: p.rz});
+    renderer({name: p.name + '_renderer'});
+
+  };
+
+  function geometry(p = {}) {
+
+    switch (p.type) {
+      case "box": this[p.name] = new THREE.BoxGeometry(p.width, p.height, p.depth, p.widthSegments, p.heightSegments, p.depthSegments); break;
+      case "roundedbox": this[p.name] = new THREE.RoundedBoxGeometry(p.width, p.height, p.depth, p.segments, p.radius); break;
+      case "capsule": this[p.name] = new THREE.CapsuleGeometry(p.radius, p.length, p.capSubdivisions || 10, p.radialSegments || 20); break;
+      case "circle": this[p.name] = new THREE.CircleGeometry(p.radius, p.segments, p.thetaStart, p.thetaLength); break;
+      case "cone": this[p.name] = new THREE.ConeGeometry(p.radius, p.height, p.radialSegments, p.heightSegments, p.openEnded, p.thetaStart, p.thetaLength); break;
+      case "cylinder": this[p.name] = new THREE.CylinderGeometry (p.radiusTop, p.radiusBottom, p.height, p.radialSegments || 20, p.heightSegments, p.openEnded, p.thetaStart, p.thetaLength); break;
+      case "dodecahedron": this[p.name] = new THREE.DodecahedronGeometry(p.radius, p.detail); break;
+      case "edges": this[p.name] = new THREE.EdgesGeometry(p.geometry, p.thresholdAngle); break;
+      case "extrude": this[p.name] = new THREE.ExtrudeGeometry(p.shapes, p.options); break;
+      case "icosahedron": this[p.name] = new THREE.IcosahedronGeometry(p.radius, p.detail); break;
+      case "lathe": this[p.name] = new THREE.LatheGeometry(p.points, p.segments, p.phiStart, p.phiLength); break;
+      case "octahedron": this[p.name] = new THREE.OctahedronGeometry(p.radius, p.detail); break;
+      case "plane": this[p.name] = new THREE.PlaneGeometry(p.width, p.height, p.widthSegments, p.heightSegments); break;
+      case "polyhedron": this[p.name] = new THREE.PolyhedronGeometry( p.vertices, p.indices, p.radius, p.detail); break;
+      case "ring": this[p.name] = new THREE.RingGeometry(p.innerRadius, p.outerRadius, p.thetaSegments, p.phiSegments, p.thetaStart, p.thetaLength); break;
+      case "shape": this[p.name] = new THREE.ShapeGeometry(p.shapes, p.curveSegments); break;
+      case "sphere": this[p.name] = new THREE.SphereGeometry(p.radius, p.widthSegments, p.heightSegments, p.phiStart, p.phiLength, p.thetaStart, p.thetaLength); break;
+      case "tetrahedron": this[p.name] = new THREE.TetrahedronGeometry(p.radius, p.detail); break;
+      case "torus": this[p.name] = new THREE.TorusGeometry(p.radius, p.tube, p.radialSegments, p.tubularSegments, p.arc ); break;
+      case "torusknot": this[p.name] = new THREE.TorusKnotGeometry(p.radius, p.tube, p.tubularSegments, p.radialSegments, p.p, p.q); break;
+      case "tube": this[p.name] = new THREE.TubeGeometry(p.path, p.tubularSegments, p.radius, p.radialSegments, p.closed);break;
+      case "wireframe": this[p.name] = new THREE.WireframeGeometry(p.geometry); break;
+    };
+
+    this[p.name].side = p.side;
+
+  };
+
+  function texture(p = {}) {
+
+    this[p.name] = new THREE.TextureLoader().load( p.path );
+    this[p.name].wrapS = THREE.RepeatWrapping;
+    this[p.name].wrapT = THREE.RepeatWrapping;
+    this[p.name].repeat.set( p.repeat_u || 1, p.repeat_v || 1 );
+
+  };
+
+  function material(p = {}) {
+
+    const {name, type, ...properties} = p;
+
+    switch (p.type) {
+      case "basic": this[p.name] = new THREE.MeshBasicMaterial(properties); break;
+      case "depth": this[p.name] = new THREE.MeshDepthMaterial(properties); break;
+      case "lambert": this[p.name] = new THREE.MeshLambertMaterial(properties); break;
+      case "matcap": this[p.name] = new THREE.MeshMatcapMaterial(properties); break;
+      case "normal": this[p.name] = new THREE.MeshNormalMaterial(properties); break;
+      case "phong": this[p.name] = new THREE.MeshPhongMaterial(properties); break;
+      case "physical": this[p.name] = new THREE.MeshPhysicalMaterial(properties); break;
+      case "standard": this[p.name] = new THREE.MeshStandardMaterial(properties); break;
+      case "toon": this[p.name] = new THREE.MeshToonMaterial(properties); break;
+    };
+
+  };
+
+  function meshes(p = {}) {
+
+    // if (p.group_name) {this[p.group_name] = new THREE.Group()};
+
+    for (const key of Object.keys(p)) { if ( !Array.isArray(p[key]) ) { p[key] = [].concat(p[key]) } };
+    for (var i = 0; i < Object.values(p).reduce((a, v) => { if ( v.length > a.length ){ return v }; return a }).length; i++) {
+
+      const mesh = new THREE.Mesh(
+        p.geometry[i % p.geometry.length],
+        p.material[i % p.material.length]
+      );
+
+      mesh.name = p.name[i % p.name.length];
+
+      mesh.position.set(
+        p.x ? p.x[i % p.x.length] : 0,
+        p.y ? p.y[i % p.y.length] : 0,
+        p.z ? p.z[i % p.z.length] : 0
+      );
+
+      mesh.rotation.set(
+        p.rx ? p.rx[i % p.rx.length] * (Math.PI / 180) : 0,
+        p.ry ? p.ry[i % p.ry.length] * (Math.PI / 180) : 0,
+        p.rz ? p.rz[i % p.rz.length] * (Math.PI / 180) : 0
+      );
+
+      mesh.scale.set(
+        p.s ? p.s[i % p.s.length] : p.sx ? p.sx[i % p.sx.length] : 1,
+        p.s ? p.s[i % p.s.length] : p.sy ? p.sy[i % p.sy.length] : 1,
+        p.s ? p.s[i % p.s.length] : p.sz ? p.sz[i % p.sz.length] : 1
+      );
+
+      mesh.visible = p.visible ? p.visible[i % p.visible.length] : true;
+
+      if (p.function) { p.function[i % p.function.length]( mesh ) };
+
+      if (p.group_function) { p.group_function[0]( mesh ) };
+
+      if (p.cursor) { mesh.cursor = p.cursor[i % p.cursor.length] };
+
+      if (p.cull) { if (!p.cull[i % p.cull.length]) {p.scene[i % p.scene.length].add(mesh)} }
+
+      else { p.scene[i % p.scene.length].add(mesh) }
+
+    };
+
+  };
+
+  function light(p = {}){
+
+    switch (p.type) {
+      case "point": this[p.name] = new THREE.PointLight(p.color, p.intensity, p.distance, p.decay); break;
+      case 'ambient': this[p.name] = new THREE.AmbientLight(p.color, p.intensity); break;
+    };
+
+    this[p.name].position.set(
+      p.x || 0,
+      p.y || 0,
+      p.z || 0
+    )
+
+    this[p.scene].add(this[p.name]);
+
+  };
+
+  function controls(p = {}) {
+
+    switch (p.type) {
+
+      case 'drag':
+        this[p.name] = new THREE.DragControls(p.objects, p.camera, p.renderer.domElement);
+        this[p.name].addEventListener("dragstart", function (event) { event.object.material.opacity = 0.5 });
+        this[p.name].addEventListener("dragend", function (event) { event.object.material.opacity = 1 });
+      break;
+
+      case 'orbit':
+        this[p.name] = new THREE.OrbitControls( p.camera, p.renderer.domElement );
+      break;
+
+    }
+
+    this[p.name].enabled = p.enabled
+  };
+</script>
+<script>
+  function room (p = {}) {
+
+    meshes({
+      group_name: 'room',
+      name: ['floor', 'ceiling', 'leftwall', 'rightwall', 'backwall', 'frontwall'],
+      scene: p.scene,
+      geometry: box,
+      material: p.material,
+      x: [p.x || 0, p.x || 0, -p.width / 2 + (p.x || 0), p.width / 2 + (p.x || 0), p.x || 0, p.x || 0],
+      y: [-p.height / 2 + (p.y || 0), p.height / 2 + (p.y || 0), p.y || 0, p.y || 0, p.y || 0, p.y || 0],
+      z: [p.z || 0, p.z || 0, p.z || 0, p.z || 0, -p.depth / 2 + (p.z || 0), p.depth / 2 + (p.z || 0)],
+      sx: [p.width, p.width, p.thickness, p.thickness, p.width, p.width],
+      sy: [p.thickness, p.thickness, p.height, p.height, p.height, p.height],
+      sz: [p.depth, p.depth, p.depth, p.depth, p.thickness, p.thickness],
+      visible: p.visible,
+      cull: p.cull
+    });
+
+  };
+
+  function chair (p = {}) {
+
+    const legx = p.width / 2 + (p.x || 0);
+    const frontlegz = p.depth / 2 + (p.z || 0);
+    const backlegz = -p.depth / 2 + (p.z || 0);
+    const y = p.y || 0;
+
+    meshes({
+      group_name: 'chair',
+      name: ['leg1', 'leg2', 'leg3', 'leg4', 'seat', 'back'],
+      scene: p.scene,
+      geometry: p.geometry,
+      material: p.material,
+      x: [legx, -legx, legx, -legx, p.x || 0, p.x || 0],
+      y: [y, y,  p.height / 4 + y + p.thickness / 2, p.height / 4 + y + p.thickness / 2, p.height / 4 + y, p.height / 2 + y + p.thickness],
+      z: [frontlegz, frontlegz, backlegz, backlegz, p.z || 0, backlegz],
+      sx: [p.thickness, p.thickness, p.thickness, p.thickness, p.width + p.thickness, p.width],
+      sy: [p.height / 2, p.height / 2, p.height + p.thickness, p.height + p.thickness, p.thickness, p.height / 3],
+      sz: [p.thickness, p.thickness, p.thickness, p.thickness, p.depth + p.thickness, p.thickness],
+      visible: p.visible
+    });
+
+  };
+
+  function painting (p = {}) {
+
+    meshes({
+      group_name: 'painting',
+      name: 'canvas',
+      scene: p.scene,
+      geometry: p.geometry,
+      material: p.material,
+      x: p.x || 0,
+      y: p.y || 0,
+      z: p.z || 0,
+      sx: p.sx || 4,
+      sy: p.sy || 3,
+      sz: p.sz || 0.01,
+      function: p.function
+    });
+
+  };
+
+  function chair (p = {}) {
+
+    const frontlegz = p.depth / 2 + (p.z || 0);
+    const backlegz = -p.depth / 2 + (p.z || 0);
+    const y = p.y || 0;
+
+    meshes({
+      group_name: 'chair',
+      name: ['leg1', 'leg2', 'leg3', 'leg4', 'seat', 'back'],
+      scene: p.scene,
+      geometry: p.geometry,
+      material: p.material,
+      x: [p.width / 2 + (p.x || 0), -p.width / 2 + (p.x || 0), p.width / 2 + (p.x || 0), -p.width / 2 + (p.x || 0), p.x || 0, p.x || 0],
+      y: [y, y,  p.height / 4 + y + p.thickness / 2, p.height / 4 + y + p.thickness / 2, p.height / 4 + y, p.height / 2 + y + p.thickness],
+      z: [frontlegz, frontlegz, backlegz, backlegz, p.z || 0, backlegz],
+      sx: [p.thickness, p.thickness, p.thickness, p.thickness, p.width + p.thickness, p.width],
+      sy: [p.height / 2, p.height / 2, p.height + p.thickness, p.height + p.thickness, p.thickness, p.height / 3],
+      sz: [p.thickness, p.thickness, p.thickness, p.thickness, p.depth + p.thickness, p.thickness],
+      visible: p.visible
+    });
+
+  };
+
+  function lamp (p = {}) {
+
+    if (typeof cylinder == 'undefined') { geometry({name: 'cylinder', type: 'cylinder'}) };
+    if (typeof openended_cylinder == 'undefined') { geometry({name: 'openended_cylinder', type: 'cylinder', openEnded: true}) };
+
+    meshes({
+      group_name: 'lamp',
+      name: ['base', 'pipe', 'shade'],
+      scene: p.scene,
+      geometry: [cylinder, cylinder, openended_cylinder],
+      material: p.material,
+      x: p.x || 2,
+      y: [-1.5 + (p.y || 0), -0.5 + (p.y || 0), 0.5 + (p.y || 0)],
+      z: p.z || 0,
+      sx: [p.sx || 0.2, p.sx || 0.02, p.sx || 0.25],
+      sy: [p.sy || 0.02, p.sy || 2, p.sy || 0.5],
+      sz: [p.sz || 0.2, p.sz || 0.02, p.sz || 0.25]
+    });
+
+  };
+</script>
+<script>
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  geometry({name: 'sphere', type: 'sphere'});
+  geometry({name: 'box', type: 'box'});
+
+  texture({name: 'wood_texture', path: 'https://cdn.shopify.com/s/files/1/0324/1709/products/YNO_d806b4cf-5497-475c-9afc-7e091580e6f3_1024x.jpeg?v=1571629949'});
+  texture({name: 'wood_floor', path: 'https://res.cloudinary.com/dexin8o58/image/upload/v1675404737/brown-wood_hyhiiv.jpg', repeat_u: 17});
+  texture({name: 'wall_texture', path: 'https://4.bp.blogspot.com/-5xNMmxVjWKg/UA5bNp_0jaI/AAAAAAAAB4s/QXcwBUUPPKw/s1600/Seamless+wall+white+paint+stucco+plaster+texture.jpg', repeat_u: 7, repeat_v: 5});
+  texture({name: 'ceiling_texture', path: 'https://4.bp.blogspot.com/-5xNMmxVjWKg/UA5bNp_0jaI/AAAAAAAAB4s/QXcwBUUPPKw/s1600/Seamless+wall+white+paint+stucco+plaster+texture.jpg', repeat_u: 40, repeat_v: 7});
+  texture({name: 'watermelon_pattern', path: 'https://res.cloudinary.com/dexin8o58/image/upload/v1676325790/New_Project_bxzf8f.jpg'});
+  texture({name: 'flowers_pattern', path: 'https://res.cloudinary.com/dexin8o58/image/upload/v1676325793/New_Project_2_quazhc.jpg'});
+  texture({name: 'calendar_texture', path: 'https://res.cloudinary.com/dexin8o58/image/upload/v1676325791/New_Project_1_wu8ldl.jpg'});
+  texture({name: 'contact_texture', path: 'https://res.cloudinary.com/dexin8o58/image/upload/v1676325793/New_Project_3_uxxyjo.jpg'});
+
+  material({ name: 'wood', type: 'standard', map: wood_texture});
+  material({ name: 'wood_floor', type: 'physical', map: wood_floor, roughness: 0});
+  material({ name: 'wall', type: 'standard', map: wall_texture});
+  material({ name: 'ceiling', type: 'standard', map: ceiling_texture});
+  material({ name: 'watermelon', type: 'standard', map: watermelon_pattern});
+  material({ name: 'flowers', type: 'standard', map: flowers_pattern});
+  material({ name: 'calendar', type: 'standard', map: calendar_texture});
+  material({ name: 'contact', type: 'standard', map: contact_texture});
+
+  material({ name: 'blue', type: 'standard', color: 'blue' });
+  material({ name: 'deeppink', type: 'standard', color: 'deeppink' });
+  material({ name: 'pink', type: 'standard', color: 'pink' });
+  material({ name: 'black', type: 'standard', color: 'black' });
+  material({ name: 'red', type: 'standard', color: 'red' });
+  material({ name: 'beige', type: 'standard', color: 'beige', side: 2 });
+  material({ name: 'maroon', type: 'standard', color: 0x57232f });
+  material({ name: 'mediumvioletred', type: 'standard', color: 'mediumvioletred' });
+
+  material({ name: 'skin', roughness: 0, transmission: 0.5, type: 'physical', color: 0xF8CBA6 });
+  material({ name: 'deeppink_transparent', roughness: 0.5, type: 'standard', color: 'deeppink', transparent: true, opacity: 0.5 });
+
+  //WORLD_________________________________________________________________________
+
+  init({name: 'world'});
+
+  light({name: 'light2', type: 'point', scene: 'world', color: 'pink', distance: 30});
+  light({name: 'light2', type: 'point', scene: 'world', color: 'deeppink', x: 10, distance: 30});
+  light({name: 'light2', type: 'point', scene: 'world', color: 'pink', x: 20, distance: 30});
+  light({name: 'light2', type: 'point', scene: 'world', color: 'deeppink', x: 30, distance: 30});
+
+  room({
+    material: [wood_floor, ceiling, deeppink, deeppink, deeppink],
+    scene: world,
+    width: 40,
+    height: 4,
+    depth: 5,
+    thickness: 0.1,
+    x: 15,
+    z: 0,
+    cull: [false, false, false, false, false, true]
+  });
+
+  chair({geometry: box, material: wood, scene: world, width: 2, height: 1, depth: 0.5, thickness: 0.05, x: 15, y: -1.7, z: -2});
+  lamp({material: [black, black, beige], scene: world, x: 2.5, z: -2, y: -0.45});
+
+  painting({
+    geometry: box,
+    material: watermelon,
+    scene: world,
+    z: -2.45,
+    function: function (mesh) {
+      mesh.on('click', (ev) => {
+        if (mesh.clicked) {new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start()}
+        else {new TWEEN.Tween(world_camera.position).to({z: 0}, 500).start()};
+        if (mesh.clicked) {mesh.clicked = false} else {mesh.clicked = true};
+      });
+      mesh.on('mouseout', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start(); mesh.clicked = false
+      });
+      mesh.on('mouseover', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({x: 0}, 500).start(); mesh.clicked = false
+      });
+    }
+  });
+
+  painting({
+    geometry: box,
+    material: calendar,
+    scene: world,
+    x: 10, z: -2.45,
+    function: function (mesh) {
+      mesh.on('click', (ev) => {
+        if (mesh.clicked) {new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start()}
+        else {new TWEEN.Tween(world_camera.position).to({z: 0}, 500).start()};
+        if (mesh.clicked) {mesh.clicked = false} else {mesh.clicked = true};
+      });
+      mesh.on('mouseout', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start(); mesh.clicked = false
+      });
+      mesh.on('mouseover', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({x: 10}, 500).start(); mesh.clicked = false
+      });
+    }
+  });
+
+  painting({
+    geometry: box,
+    material: flowers,
+    scene: world,
+    x: 20, z: -2.45,
+    function: function (mesh) {
+      mesh.on('click', (ev) => {
+        if (mesh.clicked) {new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start()}
+        else {new TWEEN.Tween(world_camera.position).to({z: 0}, 500).start()};
+        if (mesh.clicked) {mesh.clicked = false} else {mesh.clicked = true};
+      });
+      mesh.on('mouseout', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start(); mesh.clicked = false
+      });
+      mesh.on('mouseover', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({x: 20}, 500).start(); mesh.clicked = false
+      });
+    }
+  });
+
+  painting({
+    geometry: box,
+    material: contact,
+    scene: world,
+    x: 30, z: -2.45,
+    function: function (mesh) {
+      mesh.on('click', (ev) => {
+        if (mesh.clicked) {new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start()}
+        else {new TWEEN.Tween(world_camera.position).to({z: 0}, 500).start()};
+        if (mesh.clicked) {mesh.clicked = false} else {mesh.clicked = true};
+      });
+      mesh.on('mouseout', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({z: 5}, 500).start(); mesh.clicked = false
+      });
+      mesh.on('mouseover', (ev) => {
+        new TWEEN.Tween(world_camera.position).to({x: 30}, 500).start(); mesh.clicked = false
+      });
+    }
+  });
+
+  var group, shapes = [];
+  var x = -25, y = -250;
+  var heartShape = new THREE.Shape();
+  heartShape.moveTo( x + 25, y + 25 );
+  heartShape.bezierCurveTo( x + 25, y + 25, x + 20, y, x, y );
+  heartShape.bezierCurveTo( x - 30, y, x - 30, y + 35,x - 30,y + 35 );
+  heartShape.bezierCurveTo( x - 30, y + 55, x - 10, y + 77, x + 25, y + 95 );
+  heartShape.bezierCurveTo( x + 60, y + 77, x + 80, y + 55, x + 80, y + 35 );
+  heartShape.bezierCurveTo( x + 80, y + 35, x + 80, y, x + 50, y );
+  heartShape.bezierCurveTo( x + 35, y, x + 25, y + 25, x + 25, y + 25 );
+
+  function addShape( shape, extrudeSettings, color, x, y, z, rx, ry, rz, s ) {
+    var heart_geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+    var heart_mesh = new THREE.Mesh( heart_geometry, new THREE.MeshPhongMaterial( { color: color } ) );
+    heart_mesh.position.set( x - 4., y - 2, z - 2.2 );
+    heart_mesh.rotation.set( rx, ry, rz );
+    heart_mesh.scale.set( s, s, s );
+    shapes.push({shape: heart_mesh, x: Math.random(), y: Math.random(), z: Math.random()});
+    world.add(heart_mesh);
+  }
+
+  var extrudeSettings = { amount: 1, bevelEnabled: true, bevelSegments: 10, steps: 2, bevelSize: 20, bevelThickness: 10 };
+
+  for (var i=0; i<40; i+=1+Math.random()){
+    for (var j=0.5; j<3.6; j+=0.3+Math.random()*0.2){
+      addShape( heartShape,  extrudeSettings, '#ff0022',   i, j, Math.random() * 5, Math.random()*0.8, Math.random() * 0.8, Math.PI, 0.0003 + Math.random()*0.002 );
+    }
+  }
+  //MENU__________________________________________________________________________
+
+  init({name: 'menu', type: 'orthographic'});
+
+  new THREE.Interaction(menu_renderer, menu, menu_camera);
+  new THREE.Interaction(menu_renderer, world, world_camera);
+
+  light({name: 'light1', type: 'point', scene: 'menu', color: 'white', y: 40, z: 50})
+
+  meshes({
+    group_name: 'menu',
+    name: ['button0', 'button1', 'button2', 'button3'],
+    scene: menu,
+    geometry: sphere,
+    material: deeppink,
+    x: [-24, -8, 8, 24],
+    y: 45,
+    z: -1,
+    sx: 4, sy: 4, sz:4,
+    cursor: 'pointer',
+    function: [
+
+      function (object) {
+        object.on('mouseover', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 0}, 500).start() });
+        object.on('click', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 0}, 500).start() });
+      },
+
+      function (object) {
+        object.on('mouseover', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 10}, 500).start() });
+        object.on('click', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 10}, 500).start() });
+      },
+
+      function (object) {
+        object.on('mouseover', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 20}, 500).start() });
+        object.on('click', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 20}, 500).start() });
+      },
+
+      function (object) {
+        object.on('mouseover', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 30}, 500).start() });
+        object.on('click', (ev) => { new TWEEN.Tween(world_camera.position).to({x: 30}, 500).start() });
+      },
+
+    ],
+    group_function: function (name) {
+      name.on('mouseover', (ev) => { name.material = deeppink_transparent });
+      name.on('mouseout', (ev) => { name.material = deeppink })
+    }
+  });
+
+  controls({name: 'drag_controls', type: 'drag', camera: menu_camera, renderer: menu_renderer, enabled: false, objects: [menu.button0, menu.button1, menu.button2, menu.button3]});
+  controls({name: 'orbit_controls', type: 'orbit', camera: world_camera, renderer: menu_renderer, enabled: false});
+
+  // meshes({
+  //   group_name: 'controls_menu',
+  //   name: ['drag_toggle', 'orbit_toggle'],
+  //   scene: menu,
+  //   geometry: sphere,
+  //   material: deeppink,
+  //   x: -80,
+  //   y: [40, 30],
+  //   z: -1,
+  //   sx: 3, sy: 3, sz: 3,
+  //   cursor: 'pointer',
+  //   function: [
+  //     function (name) { name.on('click', (ev) => { drag_controls.enabled = !drag_controls.enabled; name.material = 'blue' }) },
+  //     function (name) { name.on('click', (ev) => { orbit_controls.enabled = !orbit_controls.enabled }) }
+  //   ],
+  //   group_function: function (name) {
+  //     name.on('mouseover', (ev) => { name.material = deeppink_transparent }),
+  //     name.on('mouseout', (ev) => { name.material = deeppink })
+  //   }
+  // });
+
+  function animate() {
+
+    requestAnimationFrame( animate );
+
+    var speed = 0.05;
+    shapes.forEach(el => {
+      el.shape.rotation.x += el.x * speed;
+      el.shape.rotation.y += el.y * speed;
+      el.shape.rotation.z += el.z * speed;
+    });
+
+    TWEEN.update();
+
+    menu_renderer.render( menu, menu_camera);
+    world_renderer.render( world, world_camera);
+
+  };
+
+  animate();
+
+  window.addEventListener('resize', onWindowResize, false);
+  function onWindowResize(){
+
+    world_camera.aspect = window.innerWidth / window.innerHeight;
+    world_camera.updateProjectionMatrix();
+    world_renderer.setSize( window.innerWidth, window.innerHeight );
+
+    aspect = window.innerWidth / window.innerHeight;
+
+    menu_camera.left = 100 * (window.innerWidth / window.innerHeight) / - 2;
+    menu_camera.right = 100 * (window.innerWidth / window.innerHeight) / 2;
+    menu_camera.top = 100 / 2;
+    menu_camera.bottom = - 100 / 2;
+
+    menu_camera.updateProjectionMatrix();
+    menu_renderer.setSize( window.innerWidth, window.innerHeight );
+
+
+  }
+</script>
+
+</body>
+
+</html>
